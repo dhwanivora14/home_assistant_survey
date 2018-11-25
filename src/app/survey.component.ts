@@ -26,6 +26,7 @@ import { asElementData } from '@angular/core/src/view';
 
 
 
+
 Survey.JsonObject.metaData.addProperty('questionbase', 'popupdescription:text');
 Survey.JsonObject.metaData.addProperty('page', 'popupdescription:text');
 
