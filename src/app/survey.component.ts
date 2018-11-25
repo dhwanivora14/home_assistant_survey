@@ -22,6 +22,7 @@ Survey.JsonObject.metaData.addProperty('questionbase', 'popupdescription:text');
 Survey.JsonObject.metaData.addProperty('page', 'popupdescription:text');
 import * as yaml from 'js-yaml';
 import * as JSZip from 'jszip';
+import { asElementData } from '@angular/core/src/view';
 
 Survey.JsonObject.metaData.addProperty('questionbase', 'popupdescription:text');
 Survey.JsonObject.metaData.addProperty('page', 'popupdescription:text');
@@ -36,6 +37,9 @@ export class SurveyComponent implements OnInit {
   surveyModel = null;
   @Input()
   json: object;
+
+  automationchoices = [];
+  automationYaml = {};
 
   click(result) {
     console.log(result);
@@ -63,9 +67,9 @@ export class SurveyComponent implements OnInit {
       header.appendChild(btn);
     });
 
-    this.surveyModel.onValueChanged.add((survey, options) => {
-      console.log(options.name)
-    });
+    // this.surveyModel.onValueChanged.add((survey, options) => {
+    //   console.log(options.name)
+    // });
 
     this.surveyModel
     .onUploadFiles
@@ -103,6 +107,7 @@ export class SurveyComponent implements OnInit {
   }
 
   readFile(file): Promise<string | ArrayBuffer>{
+    console.log("okay");
     const fr = new FileReader();
     return new Promise<string | ArrayBuffer>((resolve, reject) => {
       fr.onerror = () => {
@@ -118,7 +123,8 @@ export class SurveyComponent implements OnInit {
   }
 
 
-  readMultipleFiles(files: Array<File>) {
+  readMultipleFiles(files) {
+    console.log(files);
       return Promise.all(files.map(this.readFile));
   }
 
@@ -130,42 +136,105 @@ export class SurveyComponent implements OnInit {
   populateAutomationDropdown(files : Map<string, File>) {
     var automationchoices = [], fileArray = [];
     var zip = new JSZip();
-    files.forEach((file) => {
-      if(file.name.endsWith(".zip")) {
-        zip.loadAsync(file).then((zipFile) => {
-          zipFile.files.forEach(f => {
-            console.log(f.name);
-          });
-        });
-      }
-      else
-        fileArray.push(file);
-    });
     try {
-      this.readMultipleFiles(fileArray).then((results) => {
-        results.forEach((fileContent) => {
-          const config = yaml.safeLoad(fileContent);
-          const json = JSON.parse(JSON.stringify(config, null, 4));
-          json.forEach((value) => {
-            if(value.hasOwnProperty('alias')) {
-              var choice = String(value.alias);
-              automationchoices.push(choice);
-            }
+      files.forEach((file) => {
+        if(file.name.endsWith(".zip")) {
+          zip.loadAsync(file).then((zipFile) => {
+            var entries = Object.keys(zip.files).map(function (name) {
+              return zip.files[name];
+            });
+            var listOfPromises = entries.map(function(entry) {
+              return entry.async("blob").then(function (u8) {
+                // we bind the two together to be able to match the name and the content in the last step
+                return [entry.name, u8];
+              });
+            });
+
+            var promiseOfList = Promise.all(listOfPromises);
+            var _this = this;
+            promiseOfList.then(function (list) {
+              // here, list is a list of [name, content]
+              // let's transform it into an object for easy access
+              var result = list.reduce(function (accumulator, current) {
+                var currentName = current[0];
+                var currentValue = current[1];
+                accumulator[currentName] = currentValue;
+                return accumulator;
+              }, {} /* initial value */);
+
+              let files = [];
+              files = Object.keys(result).filter((fileName) => {
+                return fileName.endsWith(".yaml") || fileName.endsWith(".yml");
+              }).map (key => {
+                return result[key];
+              });
+
+              console.log(files);
+              files.forEach((file) => {
+                _this.readFile(file).then((fileContent) => {
+                  _this.processAutomations(fileContent);
+                });
+              });
+            });
           });
-        });
-
-        const automations = this.surveyModel.getQuestionByName("automation_choices_1");
-        automations.choices = automationchoices;
-        this.surveyModel.getQuestionByName("automation_choices_2").choices = automationchoices;
-        automations.visible = true;
-        this.surveyModel.getQuestionByName("automations_uploaded").visible = true;
-        this.surveyModel.getQuestionByName("automations_not_uploaded").visible = false;
-
-        this.surveyModel.getQuestionByName("automation_title_1").visible = false;
-        console.log(automations);
+        }
+        else {
+          this.readFile(file).then((fileContent) => {
+            this.processAutomations(fileContent);
+          });
+        }
       });
+
+      // this.readMultipleFiles(fileArray).then((results) => {
+      //   results.forEach((fileContent) => {
+      //     console.log("here");
+      //     const config = yaml.safeLoad(fileContent);
+      //     const json = JSON.parse(JSON.stringify(config, null, 4));
+      //     json.forEach((value) => {
+      //       if(value.hasOwnProperty('alias')) {
+      //         var choice = String(value.alias);
+      //         automationchoices.push(choice);
+      //       }
+      //     });
+      //   });
+      //   const automations = this.surveyModel.getQuestionByName("automation_choices_1");
+      //   automations.choices = automationchoices;
+      //   this.surveyModel.getQuestionByName("automation_choices_2").choices = automationchoices;
+      //   automations.visible = true;
+      //   this.surveyModel.getQuestionByName("automations_uploaded").visible = true;
+      //   this.surveyModel.getQuestionByName("automations_not_uploaded").visible = false;
+
+      //   this.surveyModel.getQuestionByName("automation_title_1").visible = false;
+      //   console.log(automations);
+      // });
     } catch (e) {
         console.log(e);
+    }
+  }
+
+  processYAMLContent(fileContent) {
+    fileContent = fileContent.replace("(!\w+)", "");
+    return fileContent;
+  }
+  processAutomations(fileContent) {
+    var question = <Survey.QuestionPanelDynamicModel>this.surveyModel.getQuestionByName("automation_details");
+    var element = <Survey.QuestionDropdown >question.templateElements[0];
+    if(fileContent.includes("alias")) {
+      console.log("Kuke Kuke Koyaliya");
+
+      const config = yaml.safeLoad(this.processYAMLContent(fileContent));
+      const jsonString = JSON.stringify(config, null, 4);
+      const json = JSON.parse(jsonString);
+      console.log(json);
+      Object.keys(json).forEach((key) => {
+        if(key === 'alias') {
+          var choice = String(json[key]);
+          this.automationchoices.push(choice);
+          this.automationYaml[key] = jsonString;
+        }
+      });
+      this.automationchoices.sort();
+      element.choices = this.automationchoices;
     }
   }
 }

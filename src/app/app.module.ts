@@ -14,7 +14,7 @@ import { SurveyComponent } from './survey.component';
   imports: [
     BrowserModule,
     FormsModule,
-    HttpModule
+    HttpModule,
   ],
   providers: [],
   bootstrap: [AppComponent]

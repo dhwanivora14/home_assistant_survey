@@ -70,7 +70,7 @@ export class AppComponent {
       },
       {
         // visibleIf: "{consent} == 'Agree'",
-        visible: false,
+        visible: true,
         elements: [
           {
             type: "html",
@@ -85,7 +85,7 @@ export class AppComponent {
             type: "radiogroup",
             name: "usage",
             title: "How long have you been using Home Assistant?",
-            isRequired: true,
+            isRequired: false,
             colCount: 1,
             choices: [
                 "6 months",
@@ -98,14 +98,14 @@ export class AppComponent {
           {
               name: "alternative",
               type: "text",
-              isRequired: true,
+              isRequired: false,
               title: "Have you used any alternative system for home automation except Home Assistant? If so, what?",
               placeHolder: "Amazon Alexa, Google Smart Home",
           },
           {
               name: "choiceoverothers",
               type: "comment",
-              isRequired: true,
+              isRequired: false,
               title: "Why did you choose Home Assistant over other home automation systems?",
               placeHolder: "Home Assistant is Awesome",
           },
@@ -113,7 +113,7 @@ export class AppComponent {
             type: "radiogroup",
             name: "platform",
             title: "What platform is your Home Assistant installed on?",
-            isRequired: true,
+            isRequired: false,
             colCount: 1,
             choices: [
                 "Hass.io",
@@ -126,7 +126,7 @@ export class AppComponent {
           {
             name: "otherplatform",
             type: "text",
-            isRequired: true,
+            isRequired: false,
             visibleIf: "{platform} == 'Other'",
             title: "Which other platform are you using?",
             placeHolder: "Hasbian",
@@ -135,7 +135,7 @@ export class AppComponent {
             type: "radiogroup",
             name: "hardware",
             title: "What platform is your Home Assistant installed on?",
-            isRequired: true,
+            isRequired: false,
             colCount: 1,
             choices: [
                 "Raspberry Pi",
@@ -148,7 +148,7 @@ export class AppComponent {
           {
             name: "otherhardware",
             type: "text",
-            isRequired: true,
+            isRequired: false,
             visibleIf: "{hardware} == 'Other'",
             title: "Which other hardware are you using?",
             placeHolder: "Arduino",
@@ -156,7 +156,7 @@ export class AppComponent {
           {
             type: "dropdown",
             name: "vmsoftware",
-            isRequired: true,
+            isRequired: false,
             title: "Select the software on which you are deploying the virtual machine",
             visibleIf: "{hardware} == 'Virtual Machine'",
             choices: ["VMWare", "Virtual Box", "KVM", "QEMU", "Parallel Desktops", "OpenVZ", "MobaLiveCD", "Other", "Prefer not to answer"]
@@ -164,7 +164,7 @@ export class AppComponent {
           {
             type: "dropdown",
             name: "vmos",
-            isRequired: true,
+            isRequired: false,
             title: "Select the operating system of the system on which the virtual machine is desployed",
             visibleIf: "{hardware} == 'Virtual Machine'",
             choices: ["Linux 64 bits", "Linux 32 bits", "Windows 64 bits", "Windows 32 bits", "Mac OS", "Other", "Prefer not to answer"]
@@ -174,7 +174,7 @@ export class AppComponent {
             title: 'Please upload your conguration and automation YAML files. Be sure to remove any sensitive information (e.g. API keys, usernames, or passwords), replacing them with alternative text such as \"AAAA\". Also, do not upload any secret.yaml files. Accepted types : .yaml, .yml and .zip ONLY',
             name: 'yamlfiles',
             description: "",
-            isRequired: true,
+            isRequired: false,
             storeDataAsText: false,
             allowMultiple: true,
             acceptedTypes: ".yaml,.yml,.zip",
@@ -200,7 +200,7 @@ export class AppComponent {
             html: "<html>" +
             "  <body>" +
             "    <h4><strong>Section III : Automations</strong></h4>\r\n" +
-            "    This section is related to Automations. Please provide details regarding automations you have implemented. Please select an automation from dropdown and answer following questions. You can provide details for upto 10 automations.\r\n"+
+            "    This section is related to Automations. \r\n"+
             "  </body>" +
             "</html>",
             visible: false,
@@ -216,63 +216,65 @@ export class AppComponent {
             "</html>",
           },
           {
-            type: "radiogroup",
-            name: "automation_1",
-            title: "Provide details for Automation 1 : \r\n",
-            renderAs: "prettycheckbox",
-            defaultValue: "No",
-            colCount: 0,
-            choices: ["Yes", "No"]
-          },
-          {
-            type: "panel",
-
-            name: "automation_details_1",
+            type: "paneldynamic",
+            name: "automation_details",
             title: "Please choose an automation and answer the following questions related to it",
-            elements: [
+            renderMode: "progressTopBottom",
+            panelCount : 1,
+            panelAddText: "Add automation",
+            panelRemoveText: "Remove automation",
+            templateElements: [
               {
                 type: "dropdown",
-                name: "automation_choices_1",
+                renderAs: "select2",
+                name: "automation_choices",
                 title: "Select your automation",
                 visibleIf: "{yamlfiles} notempty",
                 choices: []
               },
               {
+                type: "html",
+                name: "automation_snippet",
+                title: "Automation Snippet",
+                visibleIf: "{panel.automation_choices} notempty",
+                html: "<b>ok</b>"
+              },
+              {
                 type: "text",
-                name: "automation_title_1",
+                name: "automation_title",
                 title: "Enter the title for your automation",
                 visibleIf: "{yamlfiles} empty",
                 placeHolder: "Activate day mode"
               },
               {
                 type: "text",
-                name: "automation_description_1",
+                name: "automation_description",
                 title: "Describe what this automation does : ",
                 placeHolder: "Turn bedroom lights on at 6:00 am"
               },
               {
                 type: "tagbox",
-                name: "automation_components_1",
+                name: "automation_components",
                 title: "List the components used for the automation : ",
                 choices: this.components
               },
               {
                 type: "text",
-                name: "automation_other_1",
+                name: "automation_other",
                 title: "Please provide details regarding other component : ",
                 placeholder: "DIY component",
                 visibleIf: "{automation_components_1} contains 'Other'",
               },
               {
                 type: "text",
-                name: "automation_custom_1",
+                name: "automation_custom",
                 title: "Please provide details regarding custom component : ",
                 placeholder: "DIY component",
                 visibleIf: "{automation_components_1} contains 'Custom'",
               },
               {
                 type: "rating",
-                name: "automation_satisfaction_1",
+                name: "automation_satisfaction",
                 title: "How well does the automation work?",
                 rateValues: [1, 2, 3, 4, 5, 6, 7],
                 minRateDescription: "Not well at all",
@@ -280,31 +282,32 @@ export class AppComponent {
               },
               {
                 type: "comment",
-                name: "automation_what_1",
+                name: "automation_what",
                 title: "Please explain what works well and does not work well with this automation?",
                 placeholder: "Automation is working awesomely"
               },
               {
                 type: "comment",
-                name: "automation_why_1",
+                name: "automation_why",
                 title: "Please explain why does the automation work well/not work well(i.e. if it needs to be improved, things you would want to change, does it meet your expectations?)",
               },
               {
                 type: "rating",
-                name: "automation_innovation_1",
+                name: "automation_innovation",
                 title: "Rate your automation in terms of innovation",
+                rateValues: [1, 2, 3, 4, 5, 6, 7],
                 minRateDescription: "Not innovative",
                 maxRateDescription: "Very innovation"
               },
               {
                 type: "comment",
-                name: "automation_satisfied_1",
+                name: "automation_resources",
                 title: "How did you come up with this automation? Did you think it up on your own? Did you refer any external resources?",
               },
             ],
           },
         ]
-      }
+      },
     ]
   };
 
