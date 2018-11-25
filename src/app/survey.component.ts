@@ -22,6 +22,8 @@ Survey.JsonObject.metaData.addProperty('questionbase', 'popupdescription:text');
 Survey.JsonObject.metaData.addProperty('page', 'popupdescription:text');
 import * as yaml from 'js-yaml';
 import * as JSZip from 'jszip';
+import { asElementData } from '@angular/core/src/view';
+
 
 
 Survey.JsonObject.metaData.addProperty('questionbase', 'popupdescription:text');
@@ -86,7 +88,6 @@ export class SurveyComponent implements OnInit {
     isUpdatingValues = false;
 });
 
-
     this.surveyModel
     .onUploadFiles
     .add((survey, options) => {
@@ -148,7 +149,7 @@ export class SurveyComponent implements OnInit {
     var automationchoices = [], fileArray = [];
     var zip = new JSZip();
     try {
-      var promises = files.map((file) => {
+      files.forEach((file) => {
         if(file.name.endsWith(".zip")) {
           zip.loadAsync(file).then((zipFile) => {
             var entries = Object.keys(zip.files).map(function (name) {
@@ -160,7 +161,6 @@ export class SurveyComponent implements OnInit {
                 return [entry.name, u8];
               });
             });
-
             var promiseOfList = Promise.all(listOfPromises);
             var _this = this;
             promiseOfList.then(function (list) {
@@ -190,6 +190,32 @@ export class SurveyComponent implements OnInit {
             });
           });
 
+            var promiseOfList = Promise.all(listOfPromises);
+            var _this = this;
+            promiseOfList.then(function (list) {
+              // here, list is a list of [name, content]
+              // let's transform it into an object for easy access
+              var result = list.reduce(function (accumulator, current) {
+                var currentName = current[0];
+                var currentValue = current[1];
+                accumulator[currentName] = currentValue;
+                return accumulator;
+              }, {} /* initial value */);
+
+              let files = [];
+              files = Object.keys(result).filter((fileName) => {
+                return fileName.endsWith(".yaml") || fileName.endsWith(".yml");
+              }).map (key => {
+                return result[key];
+              });
+
+              files.forEach((file) => {
+                _this.readFile(file).then((fileContent) => {
+                  _this.processAutomations(fileContent);
+                });
+              });
+            });
+          });
         }
         else {
           this.readFile(file).then((fileContent) => {
@@ -198,28 +224,6 @@ export class SurveyComponent implements OnInit {
         }
       });
 
-      // this.readMultipleFiles(fileArray).then((results) => {
-      //   results.forEach((fileContent) => {
-      //     console.log("here");
-      //     const config = yaml.safeLoad(fileContent);
-      //     const json = JSON.parse(JSON.stringify(config, null, 4));
-      //     json.forEach((value) => {
-      //       if(value.hasOwnProperty('alias')) {
-      //         var choice = String(value.alias);
-      //         automationchoices.push(choice);
-      //       }
-      //     });
-      //   });
-      //   const automations = this.surveyModel.getQuestionByName("automation_choices_1");
-      //   automations.choices = automationchoices;
-      //   this.surveyModel.getQuestionByName("automation_choices_2").choices = automationchoices;
-      //   automations.visible = true;
-      //   this.surveyModel.getQuestionByName("automations_uploaded").visible = true;
-      //   this.surveyModel.getQuestionByName("automations_not_uploaded").visible = false;
-
-      //   this.surveyModel.getQuestionByName("automation_title_1").visible = false;
-      //   console.log(automations);
-      // });
     } catch (e) {
         console.log(e);
     }
@@ -234,7 +238,6 @@ export class SurveyComponent implements OnInit {
     var question = <Survey.QuestionPanelDynamicModel>this.surveyModel.getQuestionByName("automation_details");
     var element = <Survey.QuestionDropdown >question.templateElements[0];
     if(fileContent.includes("alias")) {
-
       const config = yaml.safeLoad(this.processYAMLContent(fileContent));
       const jsonString = JSON.stringify(config, null, 4);
       const json = JSON.parse(jsonString);
