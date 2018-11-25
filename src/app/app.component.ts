@@ -11,9 +11,9 @@ export class AppComponent {
     surveyPostId: '5dccee55-3138-4813-9280-b57b90a52f3c',
     title: 'Home Assistant Survey',
     showProgressBar: 'top',
+    showNavigationButtons: true,
     pages: [
       {
-        visible: false,
         elements: [
           {
             type: "html",
@@ -69,8 +69,7 @@ export class AppComponent {
 
       },
       {
-        // visibleIf: "{consent} == 'Agree'",
-        visible: true,
+        visibleIf: "{consent} == 'Agree'",
         elements: [
           {
             type: "html",
@@ -85,7 +84,7 @@ export class AppComponent {
             type: "radiogroup",
             name: "usage",
             title: "How long have you been using Home Assistant?",
-            isRequired: false,
+            isRequired: true,
             colCount: 1,
             choices: [
                 "6 months",
@@ -98,22 +97,20 @@ export class AppComponent {
           {
               name: "alternative",
               type: "text",
-              isRequired: false,
+              isRequired: true,
               title: "Have you used any alternative system for home automation except Home Assistant? If so, what?",
-              placeHolder: "Amazon Alexa, Google Smart Home",
           },
           {
               name: "choiceoverothers",
               type: "comment",
-              isRequired: false,
+              isRequired: true,
               title: "Why did you choose Home Assistant over other home automation systems?",
-              placeHolder: "Home Assistant is Awesome",
           },
           {
             type: "radiogroup",
             name: "platform",
             title: "What platform is your Home Assistant installed on?",
-            isRequired: false,
+            isRequired: true,
             colCount: 1,
             choices: [
                 "Hass.io",
@@ -126,16 +123,15 @@ export class AppComponent {
           {
             name: "otherplatform",
             type: "text",
-            isRequired: false,
+            isRequired: true,
             visibleIf: "{platform} == 'Other'",
             title: "Which other platform are you using?",
-            placeHolder: "Hasbian",
           },
           {
             type: "radiogroup",
             name: "hardware",
             title: "What platform is your Home Assistant installed on?",
-            isRequired: false,
+            isRequired: true,
             colCount: 1,
             choices: [
                 "Raspberry Pi",
@@ -148,15 +144,14 @@ export class AppComponent {
           {
             name: "otherhardware",
             type: "text",
-            isRequired: false,
+            isRequired: true,
             visibleIf: "{hardware} == 'Other'",
             title: "Which other hardware are you using?",
-            placeHolder: "Arduino",
           },
           {
             type: "dropdown",
             name: "vmsoftware",
-            isRequired: false,
+            isRequired: true,
             title: "Select the software on which you are deploying the virtual machine",
             visibleIf: "{hardware} == 'Virtual Machine'",
             choices: ["VMWare", "Virtual Box", "KVM", "QEMU", "Parallel Desktops", "OpenVZ", "MobaLiveCD", "Other", "Prefer not to answer"]
@@ -164,7 +159,7 @@ export class AppComponent {
           {
             type: "dropdown",
             name: "vmos",
-            isRequired: false,
+            isRequired: true,
             title: "Select the operating system of the system on which the virtual machine is desployed",
             visibleIf: "{hardware} == 'Virtual Machine'",
             choices: ["Linux 64 bits", "Linux 32 bits", "Windows 64 bits", "Windows 32 bits", "Mac OS", "Other", "Prefer not to answer"]
@@ -174,7 +169,7 @@ export class AppComponent {
             title: 'Please upload your conguration and automation YAML files. Be sure to remove any sensitive information (e.g. API keys, usernames, or passwords), replacing them with alternative text such as \"AAAA\". Also, do not upload any secret.yaml files. Accepted types : .yaml, .yml and .zip ONLY',
             name: 'yamlfiles',
             description: "",
-            isRequired: false,
+            isRequired: true,
             storeDataAsText: false,
             allowMultiple: true,
             acceptedTypes: ".yaml,.yml,.zip",
@@ -184,14 +179,16 @@ export class AppComponent {
           {
             name: "diy_info",
             type: "comment",
+            isRequired: true,
             title: "Have you built any DIY/custom components/sensors to integrate with your Home Assistant? If yes, then please share details.",
             placeHolder: "Arduino component, ESP8266, etc",
           },
         ]
       },
       {
-        // visibleIf: "{consent} == 'Agree'",
-        visible: true,
+        visibleIf: "{consent} == 'Agree'",
+        name: "automations",
+        navigationButtonsVisibility: "show",
         title: "Automations",
         elements : [
           {
@@ -229,19 +226,14 @@ export class AppComponent {
                 renderAs: "select2",
                 name: "automation_choices",
                 title: "Select your automation",
+                isRequired: true,
                 visibleIf: "{yamlfiles} notempty",
                 choices: []
               },
               {
-                type: "html",
-                name: "automation_snippet",
-                title: "Automation Snippet",
-                visibleIf: "{panel.automation_choices} notempty",
-                html: "<b>ok</b>"
-              },
-              {
                 type: "text",
                 name: "automation_title",
+                isRequired: true,
                 title: "Enter the title for your automation",
                 visibleIf: "{yamlfiles} empty",
                 placeHolder: "Activate day mode"
@@ -249,18 +241,21 @@ export class AppComponent {
               {
                 type: "text",
                 name: "automation_description",
+                isRequired: true,
                 title: "Describe what this automation does : ",
                 placeHolder: "Turn bedroom lights on at 6:00 am"
               },
               {
                 type: "tagbox",
                 name: "automation_components",
+                isRequired: true,
                 title: "List the components used for the automation : ",
                 choices: this.components
               },
               {
                 type: "text",
                 name: "automation_other",
+                isRequired: true,
                 title: "Please provide details regarding other component : ",
                 placeholder: "DIY component",
                 visibleIf: "{automation_components_1} contains 'Other'",
@@ -268,6 +263,7 @@ export class AppComponent {
               {
                 type: "text",
                 name: "automation_custom",
+                isRequired: true,
                 title: "Please provide details regarding custom component : ",
                 placeholder: "DIY component",
                 visibleIf: "{automation_components_1} contains 'Custom'",
@@ -276,6 +272,7 @@ export class AppComponent {
                 type: "rating",
                 name: "automation_satisfaction",
                 title: "How well does the automation work?",
+                isRequired: true,
                 rateValues: [1, 2, 3, 4, 5, 6, 7],
                 minRateDescription: "Not well at all",
                 maxRateDescription: "Perfect"
@@ -283,18 +280,20 @@ export class AppComponent {
               {
                 type: "comment",
                 name: "automation_what",
+                isRequired: true,
                 title: "Please explain what works well and does not work well with this automation?",
-                placeholder: "Automation is working awesomely"
               },
               {
                 type: "comment",
                 name: "automation_why",
+                isRequired: true,
                 title: "Please explain why does the automation work well/not work well(i.e. if it needs to be improved, things you would want to change, does it meet your expectations?)",
               },
               {
                 type: "rating",
                 name: "automation_innovation",
                 title: "Rate your automation in terms of innovation",
+                isRequired: true,
                 rateValues: [1, 2, 3, 4, 5, 6, 7],
                 minRateDescription: "Not innovative",
                 maxRateDescription: "Very innovation"
@@ -302,11 +301,119 @@ export class AppComponent {
               {
                 type: "comment",
                 name: "automation_resources",
+                isRequired: true,
                 title: "How did you come up with this automation? Did you think it up on your own? Did you refer any external resources?",
               },
             ],
           },
         ]
+      },
+      {
+        name: "ha_satisfaction",
+        visibleIf: "{consent} == 'Agree'",
+        title: "Home Assistant Satisfaction",
+        elements: [
+          {
+            type: "rating",
+            isRequired: true,
+            name: "ha_satisfaction_rating",
+            title: "Rate your automation in terms of innovation",
+            rateValues: [1, 2, 3, 4, 5, 6, 7],
+            minRateDescription: "Not satisfied at all",
+            maxRateDescription: "Very satisfied"
+          },
+          {
+            type: "paneldynamic",
+            name: "desired_automation_details",
+            isRequired: true,
+            title: "Please describe additional automations which you would like to add to your setup.",
+            renderMode: "progressTopBottom",
+            panelCount : 1,
+            panelAddText: "Add desired automation",
+            panelRemoveText: "Remove desired automation",
+            templateElements: [
+              {
+                type: "text",
+                name: "desired_automation_description",
+                isRequired: true,
+                title: "Describe what the desired automation will do : ",
+                placeHolder: "Turn bedroom lights on at 6:00 am"
+              },
+              {
+                type: "text",
+                name: "desired_automation_reasons",
+                isRequired: true,
+                title: "What are the reasons that you have not yet implemented this automation?",
+              },
+              {
+                type: "text",
+                name: "desired_automation_components",
+                isRequired: true,
+                title: "What additional components would you need for this automation to work (if any)?",
+              },
+              {
+                type: "rating",
+                name: "desired_automation_difficulty",
+                isRequired: true,
+                title: "What level of difficulty would it be to set up this automation",
+                rateValues: [1, 2, 3, 4, 5, 6, 7],
+                minRateDescription: "Not difficult",
+                maxRateDescription: "Very difficult"
+              },
+              {
+                type: "comment",
+                name: "desired_automation_difficulty_why",
+                isRequired: true,
+                title: "Explain your response to previous question.",
+              },
+            ],
+          },
+          {
+            type: "comment",
+            name: "component_difficulty",
+            isRequired: true,
+            title: "Are you facing any difficulty with specic hardware components? If so, please state the components and problems you are facing with each of them.",
+          },
+          {
+            type: "rating",
+            name: "ha_overall_satisfaction",
+            isRequired: true,
+            title: "What level of satisfaction do you feel with your Home Assistant?",
+            rateValues: [1, 2, 3, 4, 5, 6, 7],
+            minRateDescription: "Not satisfied",
+            maxRateDescription: "Very satisfied"
+          },
+          {
+            type: "comment",
+            name: "ha_dissatisfation_why",
+            isRequired: true,
+            title: "Explain why you are dissatisfied with Home Assistant?",
+            visibleIf: "{ha_overall_satisfaction} < 4"
+          },
+          {
+            type: "comment",
+            name: "ha_satisfication_why",
+            isRequired: true,
+            title: "Explain why you are satisfied with Home Assistant?",
+            visibleIf: "{ha_overall_satisfaction} >= 4"
+          },
+          {
+            type: "comment",
+            name: "add_comments",
+            isRequired: true,
+            title: "Please provide any additional commments here : ",
+          },
+          {
+            type: "text",
+            name: "email_address",
+            title: "If you would be willing to participate in a follow up interview over skype/hangouts (we would compensate you for your time), please provide your email address so that we can contact you.",
+            validators: [
+              {
+                  type: "email"
+              }
+            ]
+          },
+        ],
       },
     ]
   };
