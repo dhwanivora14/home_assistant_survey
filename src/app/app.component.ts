@@ -84,7 +84,7 @@ export class AppComponent {
             type: "radiogroup",
             name: "usage",
             title: "How long have you been using Home Assistant?",
-            isRequired: false,
+            isRequired: true,
             colCount: 1,
             choices: [
                 "6 months",
@@ -97,20 +97,20 @@ export class AppComponent {
           {
               name: "alternative",
               type: "text",
-              isRequired: false,
+              isRequired: true,
               title: "Have you used any alternative system for home automation except Home Assistant? If so, what?",
           },
           {
               name: "choiceoverothers",
               type: "comment",
-              isRequired: false,
+              isRequired: true,
               title: "Why did you choose Home Assistant over other home automation systems?",
           },
           {
             type: "radiogroup",
             name: "platform",
             title: "What platform is your Home Assistant installed on?",
-            isRequired: false,
+            isRequired: true,
             colCount: 1,
             choices: [
                 "Hass.io",
@@ -123,7 +123,7 @@ export class AppComponent {
           {
             name: "otherplatform",
             type: "text",
-            isRequired: false,
+            isRequired: true,
             visibleIf: "{platform} == 'Other'",
             title: "Which other platform are you using?",
           },
@@ -131,7 +131,7 @@ export class AppComponent {
             type: "radiogroup",
             name: "hardware",
             title: "What platform is your Home Assistant installed on?",
-            isRequired: false,
+            isRequired: true,
             colCount: 1,
             choices: [
                 "Raspberry Pi",
@@ -144,14 +144,14 @@ export class AppComponent {
           {
             name: "otherhardware",
             type: "text",
-            isRequired: false,
+            isRequired: true,
             visibleIf: "{hardware} == 'Other'",
             title: "Which other hardware are you using?",
           },
           {
             type: "dropdown",
             name: "vmsoftware",
-            isRequired: false,
+            isRequired: true,
             title: "Select the software on which you are deploying the virtual machine",
             visibleIf: "{hardware} == 'Virtual Machine'",
             choices: ["VMWare", "Virtual Box", "KVM", "QEMU", "Parallel Desktops", "OpenVZ", "MobaLiveCD", "Other", "Prefer not to answer"]
@@ -159,7 +159,7 @@ export class AppComponent {
           {
             type: "dropdown",
             name: "vmos",
-            isRequired: false,
+            isRequired: true,
             title: "Select the operating system of the system on which the virtual machine is desployed",
             visibleIf: "{hardware} == 'Virtual Machine'",
             choices: ["Linux 64 bits", "Linux 32 bits", "Windows 64 bits", "Windows 32 bits", "Mac OS", "Other", "Prefer not to answer"]
@@ -169,7 +169,7 @@ export class AppComponent {
             title: 'Please upload your conguration and automation YAML files. Be sure to remove any sensitive information (e.g. API keys, usernames, or passwords), replacing them with alternative text such as \"AAAA\". Also, do not upload any secret.yaml files. Accepted types : .yaml, .yml and .zip ONLY',
             name: 'yamlfiles',
             description: "",
-            isRequired: false,
+            isRequired: true,
             storeDataAsText: false,
             allowMultiple: true,
             acceptedTypes: ".yaml,.yml,.zip",
@@ -229,13 +229,6 @@ export class AppComponent {
                 isRequired: true,
                 visibleIf: "{yamlfiles} notempty",
                 choices: []
-              },
-              {
-                type: "html",
-                name: "automation_snippet",
-                title: "Automation Snippet",
-                visibleIf: "{panel.automation_choices} notempty",
-                html: "<b>ok</b>"
               },
               {
                 type: "text",

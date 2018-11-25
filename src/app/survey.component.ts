@@ -191,32 +191,6 @@ export class SurveyComponent implements OnInit {
             });
           });
 
-            var promiseOfList = Promise.all(listOfPromises);
-            var _this = this;
-            promiseOfList.then(function (list) {
-              // here, list is a list of [name, content]
-              // let's transform it into an object for easy access
-              var result = list.reduce(function (accumulator, current) {
-                var currentName = current[0];
-                var currentValue = current[1];
-                accumulator[currentName] = currentValue;
-                return accumulator;
-              }, {} /* initial value */);
-
-              let files = [];
-              files = Object.keys(result).filter((fileName) => {
-                return fileName.endsWith(".yaml") || fileName.endsWith(".yml");
-              }).map (key => {
-                return result[key];
-              });
-
-              files.forEach((file) => {
-                _this.readFile(file).then((fileContent) => {
-                  _this.processAutomations(fileContent);
-                });
-              });
-            });
-          });
         }
         else {
           this.readFile(file).then((fileContent) => {
