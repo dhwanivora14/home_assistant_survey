@@ -24,6 +24,7 @@ import * as yaml from 'js-yaml';
 import * as JSZip from 'jszip';
 import { asElementData } from '@angular/core/src/view';
 
+
 Survey.JsonObject.metaData.addProperty('questionbase', 'popupdescription:text');
 Survey.JsonObject.metaData.addProperty('page', 'popupdescription:text');
 
@@ -39,7 +40,7 @@ export class SurveyComponent implements OnInit {
   json: object;
 
   automationchoices = [];
-  automationYaml = {};
+  automationYaml = new Map();
 
   click(result) {
     console.log(result);
@@ -67,36 +68,51 @@ export class SurveyComponent implements OnInit {
       header.appendChild(btn);
     });
 
-    // this.surveyModel.onValueChanged.add((survey, options) => {
-    //   console.log(options.name)
-    // });
+    var isUpdatingValues = false;
+    var _this = this;
+    this.surveyModel.onValueChanged.add(function(survey, options){
+    if(isUpdatingValues) return;
+    if(options.name != "automation_details") return;
+    isUpdatingValues = true;
+    var automation_details = options.value;
+    if(automation_details && Array.isArray(automation_details)) {
+        let updated_choices = [];
+        for(var i = 0; i < automation_details.length; i ++) {
+            console.log(automation_details[i]);
+            // automation_details[i].automation_snippet = "<pre><code>" + _this.automationYaml.get(automation_details[i].automation_choices) + "</code></pre>";
+        }
+        survey.setValue("automation_details", automation_details);
+
+    }
+    isUpdatingValues = false;
+});
 
     this.surveyModel
     .onUploadFiles
     .add((survey, options) => {
         var formData = new FormData();
-        let m = new Map<string, File>();
+        let m = [];
         options
             .files
             .forEach(function (file) {
                 formData.append(file.name, file);
-                m.set(file.name, file);
+                m.push(file);
             });
-        // var xhr = new XMLHttpRequest();
-        // xhr.responseType = 'json';
-        // xhr.open('POST', 'api/Survey/post');
-        //  // https://surveyjs.io/api/MySurveys/uploadFiles
-        // xhr.onload = function () {
-        //     var data = xhr.response;
-        //     options.callback('success', options.files.map(file => {
-        //       const str = typeof file;
-        //         return {
-        //             file: file,
-        //             content: data[file.name]
-        //         };
-        //     }));
-        // };
-        // xhr.send(formData);
+        var xhr = new XMLHttpRequest();
+        xhr.responseType = 'json';
+        xhr.open('POST', 'api/Survey/post');
+         // https://surveyjs.io/api/MySurveys/uploadFiles
+        xhr.onload = function () {
+            var data = xhr.response;
+            options.callback('success', options.files.map(file => {
+              const str = typeof file;
+                return {
+                    file: file,
+                    content: data[file.name]
+                };
+            }));
+        };
+        xhr.send(formData);
         this.populateAutomationDropdown(m);
     });
     this.surveyModel.onComplete
@@ -128,12 +144,7 @@ export class SurveyComponent implements OnInit {
       return Promise.all(files.map(this.readFile));
   }
 
-  initializeComponents(components) {
-    this.surveyModel.getQuestionByName("automation_components_1").choices = components;
-    this.surveyModel.getQuestionByName("automation_components_2").choices = components;
-  }
-
-  populateAutomationDropdown(files : Map<string, File>) {
+  populateAutomationDropdown(files : Array<File>) {
     var automationchoices = [], fileArray = [];
     var zip = new JSZip();
     try {
@@ -175,6 +186,35 @@ export class SurveyComponent implements OnInit {
                   _this.processAutomations(fileContent);
                 });
               });
+              return file;
+            });
+          });
+
+            var promiseOfList = Promise.all(listOfPromises);
+            var _this = this;
+            promiseOfList.then(function (list) {
+              // here, list is a list of [name, content]
+              // let's transform it into an object for easy access
+              var result = list.reduce(function (accumulator, current) {
+                var currentName = current[0];
+                var currentValue = current[1];
+                accumulator[currentName] = currentValue;
+                return accumulator;
+              }, {} /* initial value */);
+
+              let files = [];
+              files = Object.keys(result).filter((fileName) => {
+                return fileName.endsWith(".yaml") || fileName.endsWith(".yml");
+              }).map (key => {
+                return result[key];
+              });
+
+              console.log(files);
+              files.forEach((file) => {
+                _this.readFile(file).then((fileContent) => {
+                  _this.processAutomations(fileContent);
+                });
+              });
             });
           });
         }
@@ -185,28 +225,6 @@ export class SurveyComponent implements OnInit {
         }
       });
 
-      // this.readMultipleFiles(fileArray).then((results) => {
-      //   results.forEach((fileContent) => {
-      //     console.log("here");
-      //     const config = yaml.safeLoad(fileContent);
-      //     const json = JSON.parse(JSON.stringify(config, null, 4));
-      //     json.forEach((value) => {
-      //       if(value.hasOwnProperty('alias')) {
-      //         var choice = String(value.alias);
-      //         automationchoices.push(choice);
-      //       }
-      //     });
-      //   });
-      //   const automations = this.surveyModel.getQuestionByName("automation_choices_1");
-      //   automations.choices = automationchoices;
-      //   this.surveyModel.getQuestionByName("automation_choices_2").choices = automationchoices;
-      //   automations.visible = true;
-      //   this.surveyModel.getQuestionByName("automations_uploaded").visible = true;
-      //   this.surveyModel.getQuestionByName("automations_not_uploaded").visible = false;
-
-      //   this.surveyModel.getQuestionByName("automation_title_1").visible = false;
-      //   console.log(automations);
-      // });
     } catch (e) {
         console.log(e);
     }
@@ -216,21 +234,20 @@ export class SurveyComponent implements OnInit {
     fileContent = fileContent.replace("(!\w+)", "");
     return fileContent;
   }
+
   processAutomations(fileContent) {
     var question = <Survey.QuestionPanelDynamicModel>this.surveyModel.getQuestionByName("automation_details");
     var element = <Survey.QuestionDropdown >question.templateElements[0];
     if(fileContent.includes("alias")) {
-      console.log("Kuke Kuke Koyaliya");
-
       const config = yaml.safeLoad(this.processYAMLContent(fileContent));
       const jsonString = JSON.stringify(config, null, 4);
       const json = JSON.parse(jsonString);
-      console.log(json);
       Object.keys(json).forEach((key) => {
         if(key === 'alias') {
           var choice = String(json[key]);
           this.automationchoices.push(choice);
-          this.automationYaml[key] = jsonString;
+          this.automationYaml.set(choice, jsonString);
+
         }
       });
       this.automationchoices.sort();
