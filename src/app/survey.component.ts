@@ -25,6 +25,7 @@ import * as JSZip from 'jszip';
 import { asElementData } from '@angular/core/src/view';
 
 
+
 Survey.JsonObject.metaData.addProperty('questionbase', 'popupdescription:text');
 Survey.JsonObject.metaData.addProperty('page', 'popupdescription:text');
 
@@ -160,7 +161,6 @@ export class SurveyComponent implements OnInit {
                 return [entry.name, u8];
               });
             });
-
             var promiseOfList = Promise.all(listOfPromises);
             var _this = this;
             promiseOfList.then(function (list) {
@@ -209,7 +209,6 @@ export class SurveyComponent implements OnInit {
                 return result[key];
               });
 
-              console.log(files);
               files.forEach((file) => {
                 _this.readFile(file).then((fileContent) => {
                   _this.processAutomations(fileContent);
@@ -247,7 +246,6 @@ export class SurveyComponent implements OnInit {
           var choice = String(json[key]);
           this.automationchoices.push(choice);
           this.automationYaml.set(choice, jsonString);
-
         }
       });
       this.automationchoices.sort();
