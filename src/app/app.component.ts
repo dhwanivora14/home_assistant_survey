@@ -317,7 +317,7 @@ export class AppComponent {
             type: "rating",
             isRequired: true,
             name: "ha_satisfaction_rating",
-            title: "Rate your automation in terms of innovation",
+            title: "Overall, how satised are you with the automations that you have set up?",
             rateValues: [1, 2, 3, 4, 5, 6, 7],
             minRateDescription: "Not satisfied at all",
             maxRateDescription: "Very satisfied"
