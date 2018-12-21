@@ -174,7 +174,7 @@ export class AppComponent {
             allowMultiple: true,
             acceptedTypes: ".yaml,.yml,.zip",
             showPreview: true,
-            maxSize: 10240000
+            maxSize: 1024000000,
           },
           {
             name: "diy_info",
@@ -193,22 +193,10 @@ export class AppComponent {
         elements : [
           {
             type: "html",
-            name: "automations_uploaded",
             html: "<html>" +
             "  <body>" +
             "    <h4><strong>Section III : Automations</strong></h4>\r\n" +
-            "    This section is related to Automations. \r\n"+
-            "  </body>" +
-            "</html>",
-            visible: false,
-          },
-          {
-            type: "html",
-            name: "automations_not_uploaded",
-            html: "<html>" +
-            "  <body>" +
-            "    <h4><strong>Section III : Automations</strong></h4>\r\n" +
-            "    This section is related to Automations. Please provide details regarding automations you have implemented. Please enter the purpose of the automation and answer following questions. You can provide details for upto 10 automations.\r\n"+
+            "    \r\n"+
             "  </body>" +
             "</html>",
           },
@@ -309,10 +297,17 @@ export class AppComponent {
         ]
       },
       {
-        name: "ha_satisfaction",
         visibleIf: "{consent} == 'Agree'",
-        title: "Home Assistant Satisfaction",
         elements: [
+          {
+            type: "html",
+            html: "<html>" +
+            "  <body>" +
+            "    <h4><strong>Section IV : Home Assistant Satisfaction</strong></h4>\r\n" +
+            "    \r\n"+
+            "  </body>" +
+            "</html>",
+          },
           {
             type: "rating",
             isRequired: true,
@@ -406,7 +401,7 @@ export class AppComponent {
           {
             type: "text",
             name: "email_address",
-            title: "If you would be willing to participate in a follow up interview over skype/hangouts (we would compensate you for your time), please provide your email address so that we can contact you.",
+            title: "If you would be willing to participate in a follow up interview over skype/hangouts (we would COMPENSATE you for your time), please provide your email address so that we can contact you.",
             validators: [
               {
                   type: "email"

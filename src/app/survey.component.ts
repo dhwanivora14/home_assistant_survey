@@ -1,6 +1,7 @@
 import { Component, Input, EventEmitter, Output, OnInit } from '@angular/core';
 import * as Survey from 'survey-angular';
 import * as widgets from 'surveyjs-widgets';
+import { QuestionFileModel } from "survey-angular";
 
 import 'inputmask/dist/inputmask/phone-codes/phone.js';
 
@@ -51,43 +52,25 @@ export class SurveyComponent implements OnInit {
 
   ngOnInit() {
     this.surveyModel = new Survey.Model(this.json);
-    this.surveyModel.onAfterRenderQuestion.add((survey, options) => {
-      if (!options.question.popupdescription) { return; }
-
-      // Add a button;
-      const btn = document.createElement('button');
-      btn.className = 'btn btn-info btn-xs';
-      btn.innerHTML = 'More Info';
-      const question = options.question;
-      btn.onclick = function () {
-        // showDescription(question);
-        alert(options.question.popupdescription);
-      };
-      const header = options.htmlElement.querySelector('h5');
-      const span = document.createElement('span');
-      span.innerHTML = '  ';
-      header.appendChild(span);
-      header.appendChild(btn);
-    });
-
     var isUpdatingValues = false;
     var _this = this;
-    this.surveyModel.onValueChanged.add(function(survey, options){
-    if(isUpdatingValues) return;
-    if(options.name != "automation_details") return;
-    isUpdatingValues = true;
-    var automation_details = options.value;
-    if(automation_details && Array.isArray(automation_details)) {
-        let updated_choices = [];
-        for(var i = 0; i < automation_details.length; i ++) {
-            console.log(automation_details[i]);
-            // automation_details[i].automation_snippet = "<pre><code>" + _this.automationYaml.get(automation_details[i].automation_choices) + "</code></pre>";
-        }
-        survey.setValue("automation_details", automation_details);
+//     this.surveyModel.onValueChanged.add(function(survey, options){
+//     if(isUpdatingValues) return;
+//     if(options.name != "automation_details") return;
+//     isUpdatingValues = true;
+//     var automation_details = options.value;
+//     if(automation_details && Array.isArray(automation_details)) {
+//         let updated_choices = [];
+//         console.log(automation_details);
+//         for(var i = 0; i < automation_details.length; i++) {
+//             console.log(automation_details[i]);
+//             automation_details[i].automation_snippet.html = "<pre><code>" + _this.automationYaml.get(automation_details[i].automation_choices) + "</code></pre>";
+//         }
+//         survey.setValue("automation_details", automation_details);
 
-    }
-    isUpdatingValues = false;
-});
+//     }
+//     isUpdatingValues = false;
+// });
 
     this.surveyModel
     .onUploadFiles
@@ -117,15 +100,29 @@ export class SurveyComponent implements OnInit {
         xhr.send(formData);
         this.populateAutomationDropdown(m);
     });
+
     this.surveyModel.onComplete
       .add(result =>
         this.submitSurvey.emit(result.data)
       );
-    Survey.SurveyNG.render('surveyElement', { model: this.surveyModel });
+
+    var _this = this;
+    Survey.SurveyNG.render('surveyElement', { model: this.surveyModel , onServerValidateQuestions: this.surveyValidateQuestion});
+  }
+
+  surveyValidateQuestion(survey, options) {
+    var yamlfiles = options.data["yamlfiles"];
+    //If the question is empty then do nothing
+    if (yamlfiles) {
+      var yamlCount = GLOBALS.yamlCount;
+      if(yamlCount < 1) {
+        options.errors["yamlfiles"] = "Please upload yaml files only!";
+      }
+    }
+    options.complete();
   }
 
   readFile(file): Promise<string | ArrayBuffer>{
-    console.log("okay");
     const fr = new FileReader();
     return new Promise<string | ArrayBuffer>((resolve, reject) => {
       fr.onerror = () => {
@@ -147,7 +144,6 @@ export class SurveyComponent implements OnInit {
   }
 
   populateAutomationDropdown(files : Array<File>) {
-    var automationchoices = [], fileArray = [];
     var zip = new JSZip();
     try {
       files.forEach((file) => {
@@ -181,7 +177,7 @@ export class SurveyComponent implements OnInit {
                 return result[key];
               });
 
-              console.log(files);
+              GLOBALS.yamlCount = GLOBALS.yamlCount + files.length;
               files.forEach((file) => {
                 _this.readFile(file).then((fileContent) => {
                   _this.processAutomations(fileContent);
@@ -205,7 +201,7 @@ export class SurveyComponent implements OnInit {
   }
 
   processYAMLContent(fileContent) {
-    fileContent = fileContent.replace("(!\w+)", "");
+    fileContent = fileContent.replace(/!\w+/, "");
     return fileContent;
   }
 
@@ -228,3 +224,7 @@ export class SurveyComponent implements OnInit {
     }
   }
 }
+
+export const GLOBALS = {
+  yamlCount: 0,
+};

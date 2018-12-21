@@ -1,4 +1,18 @@
 
+<script src="https://www.gstatic.com/firebasejs/5.7.1/firebase.js"></script>
+<script>
+  // Initialize Firebase
+  var config = {
+    apiKey: "AIzaSyA82MtYFDT4wA6LTfPGc9i_MJyG_rdD6so",
+    authDomain: "home-assistant-survey.firebaseapp.com",
+    databaseURL: "https://home-assistant-survey.firebaseio.com",
+    projectId: "home-assistant-survey",
+    storageBucket: "home-assistant-survey.appspot.com",
+    messagingSenderId: "392333549443"
+  };
+  firebase.initializeApp(config);
+</script>
+
 <survey
   [json]="json"
   (submitSurvey)="sendData($event)">
