@@ -42,7 +42,7 @@ export class SurveyComponent implements OnInit {
   @Input()
   json: object;
 
-  automationchoices = [];
+  automationchoices = [] as string[];
   automationYaml = new Map();
 
   click(result) {
@@ -189,8 +189,10 @@ export class SurveyComponent implements OnInit {
 
         }
         else {
+          var _this = this;
           this.readFile(file).then((fileContent) => {
-            this.processAutomations(fileContent);
+            GLOBALS.yamlCount = GLOBALS.yamlCount + 1;
+            _this.processAutomations(fileContent);
           });
         }
       });
@@ -205,6 +207,19 @@ export class SurveyComponent implements OnInit {
     return fileContent;
   }
 
+  getJSONValues(obj, key): string[]{
+    var objects = [];
+    for (var i in obj) {
+        if (!obj.hasOwnProperty(i)) continue;
+        if (typeof obj[i] == 'object') {
+            objects = objects.concat(this.getJSONValues(obj[i], key));
+        } else if (i == key) {
+            objects.push(obj[i]);
+        }
+    }
+    return objects;
+  }
+
   processAutomations(fileContent) {
     var question = <Survey.QuestionPanelDynamicModel>this.surveyModel.getQuestionByName("automation_details");
     var element = <Survey.QuestionDropdown >question.templateElements[0];
@@ -212,13 +227,8 @@ export class SurveyComponent implements OnInit {
       const config = yaml.safeLoad(this.processYAMLContent(fileContent));
       const jsonString = JSON.stringify(config, null, 4);
       const json = JSON.parse(jsonString);
-      Object.keys(json).forEach((key) => {
-        if(key === 'alias') {
-          var choice = String(json[key]);
-          this.automationchoices.push(choice);
-          this.automationYaml.set(choice, jsonString);
-        }
-      });
+      const choices = this.getJSONValues(json, "alias");
+      this.automationchoices = this.automationchoices.concat(choices);
       this.automationchoices.sort();
       element.choices = this.automationchoices;
     }
